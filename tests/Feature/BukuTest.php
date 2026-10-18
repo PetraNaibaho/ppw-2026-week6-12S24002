@@ -223,4 +223,84 @@ class BukuTest extends TestCase
         // Tanpa Eager Loading (Lazy Loading), kuerinya akan berjumlah 11 (1 + 10 = N+1)
         $this->assertEquals(2, $queryCount, 'Eager Loading harus tepat mengeksekusi 2 kueri SQL!');
     }
+
+    /**
+     * Uji dashboard analitik Fluent Query Builder (DB::table) dan withCount('peminjamans').
+     */
+    public function test_buku_index_renders_analytics_dashboard_and_with_count_peminjamans(): void
+    {
+        $kategori = Kategori::create([
+            'kode_kategori' => 'SI',
+            'nama_kategori' => 'Sistem Informasi',
+        ]);
+
+        $buku = Buku::create([
+            'isbn' => '9786022987999',
+            'judul' => 'Sistem Informasi Manajemen',
+            'penulis' => 'Kenneth C. Laudon',
+            'penerbit' => 'Pearson',
+            'tahun_terbit' => 2023,
+            'kategori_id' => $kategori->id,
+            'stok' => 4,
+            'sinopsis' => 'Buku analitik sistem informasi.',
+        ]);
+
+        // Simulasikan peminjaman
+        $buku->peminjamans()->create([
+            'kode_pinjam' => 'PJ-TEST-001',
+            'nim_peminjam' => '12S24002',
+            'nama_peminjam' => 'Petra Naibaho',
+            'tanggal_pinjam' => now()->toDateString(),
+            'tanggal_jatuh_tempo' => now()->addDays(7)->toDateString(),
+            'status' => 'dipinjam',
+        ]);
+
+        $response = $this->get(route('buku.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Total Judul Buku');
+        $response->assertSee('Total Stok Tersedia');
+        $response->assertSee('Buku Sedang Dipinjam');
+        $response->assertSee('Total Dikembalikan');
+        // withCount assertion
+        $response->assertSee('1x');
+    }
+
+    /**
+     * Uji filter dinamis when() dan pencatatan kata kunci di session state.
+     */
+    public function test_dynamic_search_filter_with_when_clause_and_session(): void
+    {
+        $kategori = Kategori::create([
+            'kode_kategori' => 'RPL',
+            'nama_kategori' => 'Rekayasa Perangkat Lunak',
+        ]);
+
+        Buku::create([
+            'isbn' => '9786022987111',
+            'judul' => 'Clean Code Artisan',
+            'penulis' => 'Robert C. Martin',
+            'penerbit' => 'Prentice Hall',
+            'tahun_terbit' => 2022,
+            'kategori_id' => $kategori->id,
+            'stok' => 5,
+        ]);
+
+        Buku::create([
+            'isbn' => '9786022987222',
+            'judul' => 'Algoritma Pemrograman',
+            'penulis' => 'Donald Knuth',
+            'penerbit' => 'Addison-Wesley',
+            'tahun_terbit' => 2021,
+            'kategori_id' => $kategori->id,
+            'stok' => 3,
+        ]);
+
+        $response = $this->get(route('buku.index', ['search' => 'Clean Code']));
+        $response->assertStatus(200);
+        $response->assertSee('Clean Code Artisan');
+        $response->assertDontSee('Algoritma Pemrograman');
+
+        // Pastikan session state menyimpan kata kunci pencarian
+        $this->assertEquals('Clean Code', session('last_book_search'));
+    }
 }

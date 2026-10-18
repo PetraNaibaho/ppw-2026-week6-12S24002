@@ -9,10 +9,13 @@
                 Katalog Koleksi Buku
             </h2>
             <p class="text-muted mb-0 small">
-                Manajemen data sirkulasi dan inventarisasi buku perpustakaan Institut Teknologi Del.
+                Manajemen data sirkulasi, inventarisasi, dan analitik koleksi perpustakaan Institut Teknologi Del.
             </p>
         </div>
         <div class="d-flex gap-2">
+            <a href="{{ route('peminjaman.index') }}" class="btn btn-outline-del btn-sm">
+                <i class="bi bi-arrow-left-right me-1"></i> Sirkulasi Peminjaman
+            </a>
             <a href="{{ route('kategori.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-tags me-1"></i> Kelola Kategori
             </a>
@@ -22,14 +25,15 @@
         </div>
     </div>
 
-    <!-- Quick Stats Cards -->
+    <!-- Quick Stats Cards (Fluent Query Builder DB::table) -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
+        <!-- 1. Total Judul Buku -->
+        <div class="col-sm-6 col-xl-3">
             <div class="card card-custom p-3 border-start border-4" style="border-left-color: #4C1D95 !important;">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <div class="text-muted small fw-medium">Total Judul Buku</div>
-                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalBuku) }}</h3>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_judul'] ?? $totalBuku) }}</h3>
                     </div>
                     <div class="p-3 rounded-circle badge-del fs-4">
                         <i class="bi bi-book"></i>
@@ -37,12 +41,14 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+
+        <!-- 2. Total Stok Tersedia -->
+        <div class="col-sm-6 col-xl-3">
             <div class="card card-custom p-3 border-start border-4 border-success">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-muted small fw-medium">Total Eksemplar Stok</div>
-                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalStok) }}</h3>
+                        <div class="text-muted small fw-medium">Total Stok Tersedia</div>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_stok'] ?? $totalStok) }}</h3>
                     </div>
                     <div class="p-3 rounded-circle bg-success-subtle text-success fs-4">
                         <i class="bi bi-stack"></i>
@@ -50,22 +56,39 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+
+        <!-- 3. Total Sedang Dipinjam -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card card-custom p-3 border-start border-4 border-warning">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-medium">Buku Sedang Dipinjam</div>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_dipinjam'] ?? 0) }}</h3>
+                    </div>
+                    <div class="p-3 rounded-circle bg-warning-subtle text-warning-emphasis fs-4">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Total Buku Selesai Dikembalikan -->
+        <div class="col-sm-6 col-xl-3">
             <div class="card card-custom p-3 border-start border-4 border-info">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-muted small fw-medium">Kategori Terdaftar</div>
-                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalKategori) }}</h3>
+                        <div class="text-muted small fw-medium">Total Dikembalikan</div>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_dikembalikan'] ?? 0) }}</h3>
                     </div>
                     <div class="p-3 rounded-circle bg-info-subtle text-info fs-4">
-                        <i class="bi bi-bookmark-star"></i>
+                        <i class="bi bi-check2-all"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filter & Search Card -->
+    <!-- Filter & Search Card with Dynamic when() -->
     <div class="card card-custom mb-4">
         <div class="card-body p-3">
             <form method="GET" action="{{ route('buku.index') }}" class="row g-2 align-items-center">
@@ -96,10 +119,15 @@
                     @endif
                 </div>
             </form>
+            @if(session('last_book_search'))
+                <div class="text-muted mt-2" style="font-size: 0.75rem;">
+                    <i class="bi bi-clock-history me-1"></i> Kata kunci pencarian sesi terakhir: <code>{{ session('last_book_search') }}</code>
+                </div>
+            @endif
         </div>
     </div>
 
-    <!-- Table of Books -->
+    <!-- Table of Books with withCount('peminjamans') -->
     <div class="card card-custom">
         <div class="card-header card-header-del d-flex justify-content-between align-items-center py-3">
             <span class="fw-semibold">
@@ -115,11 +143,12 @@
                     <tr>
                         <th class="text-center" style="width: 50px;">No</th>
                         <th style="width: 130px;">ISBN</th>
-                        <th>Judul Buku & Kategori</th>
-                        <th>Penulis & Penerbit</th>
-                        <th class="text-center" style="width: 80px;">Tahun</th>
+                        <th>Judul Buku &amp; Kategori</th>
+                        <th>Penulis &amp; Penerbit</th>
+                        <th class="text-center" style="width: 70px;">Tahun</th>
                         <th class="text-center" style="width: 90px;">Stok</th>
-                        <th class="text-center" style="width: 150px;">Aksi</th>
+                        <th class="text-center" style="width: 90px;">Dipinjam</th>
+                        <th class="text-center" style="width: 170px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,7 +197,23 @@
                                 @endif
                             </td>
                             <td class="text-center">
+                                <span class="badge bg-light text-dark border small font-monospace">
+                                    <i class="bi bi-arrow-repeat text-primary me-1"></i>{{ $buku->peminjamans_count }}x
+                                </span>
+                            </td>
+                            <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">
+                                    <!-- Quick Borrow Button -->
+                                    @if($buku->stok > 0)
+                                        <a href="{{ route('peminjaman.create', ['buku_id' => $buku->id]) }}" class="btn btn-outline-success" title="Pinjam Buku">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    @else
+                                        <button class="btn btn-light text-danger" disabled title="Stok Habis">
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
+                                    @endif
+
                                     <a href="{{ route('buku.show', $buku) }}" class="btn btn-outline-primary" title="Lihat Detail">
                                         <i class="bi bi-eye"></i>
                                     </a>
@@ -187,7 +232,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="text-muted">
                                     <i class="bi bi-folder-x fs-1 text-secondary opacity-50"></i>
                                     <h6 class="mt-3 fw-bold">Belum Ada Data Buku</h6>
@@ -199,11 +244,11 @@
                                         @endif
                                     </p>
                                     @if(request('search') || request('kategori_id'))
-                                        <a href="{{ route('buku.index') }}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Pencarian
+                                        <a href="{{ route('buku.index') }}" class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Tampilkan Semua Buku
                                         </a>
                                     @else
-                                        <a href="{{ route('buku.create') }}" class="btn btn-sm btn-del">
+                                        <a href="{{ route('buku.create') }}" class="btn btn-del btn-sm">
                                             <i class="bi bi-plus-lg me-1"></i> Tambah Buku Pertama
                                         </a>
                                     @endif
@@ -215,15 +260,10 @@
             </table>
         </div>
 
-        <!-- Pagination Footer -->
+        <!-- Pagination -->
         @if($bukus->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div class="small text-muted">
-                    Menampilkan data <strong>{{ $bukus->firstItem() }}</strong> sampai <strong>{{ $bukus->lastItem() }}</strong> dari <strong>{{ $bukus->total() }}</strong> hasil
-                </div>
-                <div>
-                    {{ $bukus->links() }}
-                </div>
+            <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
+                {{ $bukus->links() }}
             </div>
         @endif
     </div>
