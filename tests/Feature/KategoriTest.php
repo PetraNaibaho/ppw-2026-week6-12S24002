@@ -11,6 +11,19 @@ class KategoriTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $user = \App\Models\User::create([
+            'name' => 'Pustakawan Uji',
+            'email' => 'pustakawan@del.ac.id',
+            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+        ]);
+
+        $this->actingAs($user);
+    }
+
     public function test_can_render_kategori_index_page(): void
     {
         Kategori::create([

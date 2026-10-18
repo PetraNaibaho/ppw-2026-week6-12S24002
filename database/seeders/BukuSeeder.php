@@ -16,6 +16,28 @@ class BukuSeeder extends Seeder
         $kategoriMap = Kategori::pluck('id', 'kode_kategori')->toArray();
 
         $books = [
+            // Sampel Buku Pengujian Transaksi ACID (Stok = 0 dan Stok = 1)
+            [
+                'isbn' => '9786022987000',
+                'judul' => 'Arsitektur Berorientasi Servis & ACID Transaksi (Stok Habis)',
+                'penulis' => 'Chandro Pardede, S.Kom., M.Sc.',
+                'penerbit' => 'Del Press Laguboti',
+                'tahun_terbit' => 2025,
+                'kode_kategori' => 'RPL',
+                'stok' => 0, // Sampel Stok 0 untuk Pengujian Penolakan & Rollback Atomik
+                'sinopsis' => 'Buku rujukan konkurensi data dan transaksi atomik. Buku ini sengaja disiapkan dengan stok 0 untuk verifikasi proteksi penolakan peminjaman.',
+            ],
+            [
+                'isbn' => '9786022987001',
+                'judul' => 'Konkurensi Modern dan Row-Level Locking (Stok Kritis: 1)',
+                'penulis' => 'Tenno Martin Tampubolon, S.T., M.Sc.',
+                'penerbit' => 'Del Press Laguboti',
+                'tahun_terbit' => 2026,
+                'kode_kategori' => 'RPL',
+                'stok' => 1, // Sampel Stok 1 untuk Pengujian Concurrency Race Condition
+                'sinopsis' => 'Kajian mendalam teknik isolasi ACID dan pencegahan race condition melalui klausa lockForUpdate pada level baris basis data relasional.',
+            ],
+
             // RPL
             [
                 'isbn' => '9786022987101',

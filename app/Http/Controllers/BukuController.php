@@ -120,7 +120,9 @@ class BukuController extends Controller
      */
     public function show(Buku $buku): View
     {
-        $buku->load('kategori');
+        $buku->load(['kategori', 'peminjamans' => function ($q) {
+            $q->latest()->limit(5);
+        }]);
 
         return view('buku.show', compact('buku'));
     }

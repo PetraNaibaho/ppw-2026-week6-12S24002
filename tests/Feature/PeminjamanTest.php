@@ -34,6 +34,14 @@ class PeminjamanTest extends TestCase
             'stok' => 2,
             'sinopsis' => 'Buku teks basis data dan transaksi ACID.',
         ]);
+
+        $user = \App\Models\User::create([
+            'name' => 'Pustakawan Uji',
+            'email' => 'pustakawan@del.ac.id',
+            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+        ]);
+
+        $this->actingAs($user);
     }
 
     /**

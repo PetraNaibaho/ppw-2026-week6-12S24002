@@ -101,6 +101,17 @@
                                     @endif
                                 </div>
                                 <p class="small text-muted mt-2 mb-0">Total eksemplar fisik yang terdaftar pada rak perpustakaan.</p>
+                                <div class="mt-3">
+                                    @if($buku->stok > 0)
+                                        <a href="{{ route('peminjaman.create', ['buku_id' => $buku->id]) }}" class="btn btn-success btn-sm w-100 fw-semibold shadow-sm">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Pinjam Buku Ini
+                                        </a>
+                                    @else
+                                        <button class="btn btn-secondary btn-sm w-100" disabled>
+                                            <i class="bi bi-slash-circle me-1"></i> Stok Habis (Tidak Dapat Dipinjam)
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
 
                             <!-- Category Quick Info -->
@@ -119,6 +130,54 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Riwayat Sirkulasi Peminjaman Terkini -->
+                    @if($buku->peminjamans && $buku->peminjamans->count() > 0)
+                        <hr class="my-4">
+                        <div class="mt-3">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="bi bi-clock-history me-1 text-primary"></i> 5 Riwayat Peminjaman Terakhir Buku Ini
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered align-middle small mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Kode Pinjam</th>
+                                            <th>Peminjam (NIM - Nama)</th>
+                                            <th>Tgl Pinjam</th>
+                                            <th>Jatuh Tempo</th>
+                                            <th>Tgl Kembali</th>
+                                            <th class="text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($buku->peminjamans as $pj)
+                                            <tr>
+                                                <td><code class="text-dark">{{ $pj->kode_pinjam }}</code></td>
+                                                <td>{{ $pj->nim_peminjam }} — {{ $pj->nama_peminjam }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($pj->tanggal_pinjam)->format('d/m/Y') }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($pj->tanggal_jatuh_tempo)->format('d/m/Y') }}</td>
+                                                <td>
+                                                    @if($pj->tanggal_kembali)
+                                                        <span class="text-success">{{ \Carbon\Carbon::parse($pj->tanggal_kembali)->format('d/m/Y') }}</span>
+                                                    @else
+                                                        <span class="text-muted fst-italic">—</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    @if($pj->status === 'dipinjam')
+                                                        <span class="badge bg-warning text-dark">Dipinjam</span>
+                                                    @else
+                                                        <span class="badge bg-success">Dikembalikan</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

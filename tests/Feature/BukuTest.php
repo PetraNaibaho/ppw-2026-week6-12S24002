@@ -12,6 +12,19 @@ class BukuTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $user = \App\Models\User::create([
+            'name' => 'Pustakawan Uji',
+            'email' => 'pustakawan@del.ac.id',
+            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+        ]);
+
+        $this->actingAs($user);
+    }
+
     public function test_root_url_redirects_to_buku_index(): void
     {
         $response = $this->get('/');

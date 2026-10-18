@@ -144,12 +144,35 @@
                     </li>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
-                    <a href="{{ route('buku.create') }}" class="btn btn-warning btn-sm fw-semibold shadow-sm text-dark">
-                        <i class="bi bi-plus-circle-fill me-1"></i> Tambah Buku
-                    </a>
-                    <a href="{{ route('kategori.create') }}" class="btn btn-outline-light btn-sm fw-semibold">
-                        <i class="bi bi-folder-plus me-1"></i> Tambah Kategori
-                    </a>
+                    @auth
+                        <div class="text-white d-none d-lg-block me-2 text-end">
+                            <div class="fw-semibold small d-flex align-items-center justify-content-end gap-1">
+                                <i class="bi bi-person-circle text-warning"></i>
+                                <span>{{ Auth::user()->name }}</span>
+                            </div>
+                            @if(session('login_timestamp'))
+                                <div class="text-white-50" style="font-size: 0.7rem;">
+                                    <i class="bi bi-clock-history me-1"></i>{{ session('login_timestamp') }}
+                                </div>
+                            @endif
+                        </div>
+                        <a href="{{ route('buku.create') }}" class="btn btn-warning btn-sm fw-semibold shadow-sm text-dark">
+                            <i class="bi bi-plus-circle-fill me-1"></i> Tambah Buku
+                        </a>
+                        <a href="{{ route('kategori.create') }}" class="btn btn-outline-light btn-sm fw-semibold">
+                            <i class="bi bi-folder-plus me-1"></i> Tambah Kategori
+                        </a>
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri sesi pustakawan?');">
+                            @csrf
+                            <button type="submit" class="btn btn-danger btn-sm fw-semibold" title="Keluar dari sistem">
+                                <i class="bi bi-box-arrow-right me-1"></i> Keluar
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-warning btn-sm fw-semibold shadow-sm text-dark">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Login Pustakawan
+                        </a>
+                    @endauth
                 </div>
             </div>
         </div>
