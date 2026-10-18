@@ -137,6 +137,11 @@
                             <i class="bi bi-tags me-1"></i> Kategori
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('peminjaman.*') ? 'active' : '' }}" href="{{ route('peminjaman.index') }}">
+                            <i class="bi bi-arrow-left-right me-1"></i> Sirkulasi Peminjaman
+                        </a>
+                    </li>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('buku.create') }}" class="btn btn-warning btn-sm fw-semibold shadow-sm text-dark">
